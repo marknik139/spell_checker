@@ -4,7 +4,7 @@ import CorrectedTextField from "./CorrectedTextField";
 import CheckButton from "./CheckButton";
 import ApiClient from "../api/apiClient";
 import {Card, CardContent, Box} from "@mui/material";
-const TextInputWithButton = () => {
+const TextInputForm = ({onTextSubmit}) => {
     const [inputText, setInputText] = useState('');
     const [correctedText, setCorrectedText] = useState('');
     const [loading, setLoading] = useState(false);
@@ -25,6 +25,16 @@ const TextInputWithButton = () => {
         }
     };
 
+    function saveToLocalStorage(inputText, correctedText) {
+        try {
+            const corrections = JSON.parse(localStorage.getItem('corrections')) || [];
+            corrections.push({ inputText, correctedText });
+            localStorage.setItem('corrections', JSON.stringify(corrections));
+        } catch (error) {
+            console.error('Ошибка при записи в localStorage:', error);
+        }
+    }
+
     const handleSubmit = async () => {
         setCorrectedText('');
         if (!inputText.trim()) {
@@ -36,6 +46,8 @@ const TextInputWithButton = () => {
         try {
             const {output: correctedText} = await ApiClient.getTextCorrection({ sentence: inputText });
             setCorrectedText(correctedText);
+            saveToLocalStorage(inputText, correctedText);
+            onTextSubmit();
         } catch (error) {
             console.error('Ошибка при отправке запроса:', error);
         } finally {
@@ -69,4 +81,4 @@ const TextInputWithButton = () => {
     );
 };
 
-export default TextInputWithButton;
+export default TextInputForm;
